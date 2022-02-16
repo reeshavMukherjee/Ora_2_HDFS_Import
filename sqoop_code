@@ -1,0 +1,595 @@
+--------------SQOOP COMMAND------------------
+
+
+---BASIC SQOOP IMPORT---
+
+sqoop import \
+--connect jdbc:oracle:thin;//sdbahpocm01-db.agriculture.gov.ie:1532 \
+--username DA_DATA \
+--p \
+--num-mappers 1 <Need to alter according to data>
+
+-----------------------------------------------------------------------------------------
+
+---BASIC SQOOP IMPORT WITH TARGET DIR---
+
+sqoop import \
+--connect jdbc:oracle:thin;//sdbahpocm01-db.agriculture.gov.ie:1532 \
+--username DA_DATA \
+--p \
+--target-dir <If we have target Dir else ignore e.g, /user/Hadoop/sqoop_import/targetFiles> \
+--num-mappers 1 <Need to alter according to data>
+
+-----------------------------------------------------------------------------------------
+
+
+---BASIC SQOOP IMPORT WITH TARGET DIR and DELETE OLD TARGET DIR---
+
+sqoop import \
+--connect jdbc:oracle:thin;//sdbahpocm01-db.agriculture.gov.ie:1532 \
+--username DA_DATA \
+--p \
+--target-dir <If we have target Dir else ignore e.g, /user/Hadoop/sqoop_import/targetFiles> \
+--num-mappers 1 <Need to alter according to data> \
+--delete-target-dir
+
+-----------------------------------------------------------------------------------------
+
+
+---SQOOP IMPORT USING TABLE NAME---
+
+sqoop import \
+--connect jdbc:oracle:thin;//sdbahpocm01-db.agriculture.gov.ie:1532 \
+--username DA_DATA \
+--p \
+--table <SCHEMA_NAME.TABLE_NAME> \
+--target-dir <If we have target Dir else ignore e.g, /user/Hadoop/sqoop_import/targetFiles> \
+--delete-target-dir \
+--num-mappers 1 <Need to alter according to data>
+-----------------------------------------------------------------------------------------
+
+
+
+---SQOOP IMPORT USING TABLE NAME and COLUMN NAME---
+
+sqoop import \
+--connect jdbc:oracle:thin;//sdbahpocm01-db.agriculture.gov.ie:1532 \
+--username DA_DATA \
+--p \
+--table <SCHEMA_NAME.TABLE_NAME> \
+--column <column_names of the table if requiredto import particular column>/ 
+--target-dir <If we have target Dir else ignore e.g, /user/Hadoop/sqoop_import/targetFiles> \
+--delete-target-dir \
+--num-mappers 1 <Need to alter according to data>
+
+-----------------------------------------------------------------------------------------
+
+
+---SQOOP IMPORT USING TABLE NAME and COLUMN NAME with WHERE CLAUSE---
+
+sqoop import \
+--connect jdbc:oracle:thin;//sdbahpocm01-db.agriculture.gov.ie:1532 \
+--username DA_DATA \
+--p \
+--table <SCHEMA_NAME.TABLE_NAME> \
+--column <column_names of the table if requiredto import particular column>/ 
+--where <where clause e.g., 'ID = 1' or limits e.g, 'ID>0 AND ID<10'> \
+--target-dir <If we have target Dir else ignore e.g, /user/Hadoop/sqoop_import/targetFiles> \
+--delete-target-dir \
+--num-mappers 1 <Need to alter according to data>
+
+-----------------------------------------------------------------------------------------
+
+
+---HDFS File List---
+hdfs dfs -ls <Directory target to see the list of files present e.g., /user/Hadoop/sqoop_import/targetFiles>
+
+
+---HDFS Record List from Partfile---
+hdfs dfs -cat <Directory with filename to see record  e.g., /user/Hadoop/sqoop_import/targetFiles/partfilename part-m-00000>
+
+-----------------------------------------------------------------------------------------
+
+
+---LIST TABLE---
+
+test=`cat temp`
+sudo sqoop \
+list-tables \
+--connect "jdbc:oracle:thin:DA_DATA/$test@(DESCRIPTION = (ADDRESS = (PROTOCOL=tcp)(HOST=sdbahpocm01-db.agriculture.gov.ie)(PORT=1532)) \
+(CONNECT_DATA = (SERVICE_NAME=DSSDEV.agriculture.gov.ie) ) \
+(HS=OK))"
+
+
+-----------------------------------------------------------------------------------------
+-----SQOOP HIVE IMPORT USING CONSTANT STRING-----
+
+sqoop import \
+--connect "jdbc:oracle:thin:DA_DATA/$test@ \
+--(DESCRIPTION = (ADDRESS = (PROTOCOL=tcp)(HOST=sdbahpocm01-db.agriculture.gov.ie)(PORT=1532)) \
+--(CONNECT_DATA = (SERVICE_NAME=DSSDEV.agriculture.gov.ie) ) (HS=OK))" \
+--table TSDA_CROP \
+--hive-import \
+--hive-overwrite \
+--create-hive-table \
+--hive-database dev_da_demo \
+--hive-table TSDA_CROP
+
+-----------------------------------------------------------------------------------------
+
+
+---FULL LOAD INTO HIVE FROM RDBMS USING SQOOP---
+
+sqoop import \
+--connect "jdbc:oracle:thin:DA_DATA/$test@ \
+--(DESCRIPTION = (ADDRESS = (PROTOCOL=tcp)(HOST=sdbahpocm01-db.agriculture.gov.ie)(PORT=1532)) \
+--(CONNECT_DATA = (SERVICE_NAME=WEEKC.agriculture.gov.ie) ) (HS=OK))" \
+--table TSDA_CROP \
+--hive-import \
+--hive-overwrite \
+--create-hive-table \
+--hive-database dev_da_demo \
+--hive-table TSDA_CROP
+
+-----------------------------------------------------------------------------------------
+
+
+## TO IMPORT SELECTED FILES (25/250) IN HIVE, WE NEED TO USE SHELL SCRIPT. FOR IMPORTING THE OTHER WAY (240/250 TABLES), WE CAN USE EXCLUDE COMMAND TO EXCLUDE THE 10 TABLES.##
+
+##STEP 1. CREATE .txt FILE WITH THE TABLE NAME##
+
+bash$ vi table_names.txt
+WEEKC.TDAM_GENETICS_MOVEMENT_TRANS.gnm_extract_date.28/01/2022
+WEEKC.TDAM_MOVEMENTS.MOV_AUDIT_DATE.31/01/2022
+WEEKC.TDAM_GENETICS_TRANS.gnt_trans_date.29/01/2022
+WEEKC.TDAM_ANMLS_AWAITING_REG_TRANS
+WEEKC.TDAM_ANIMAL_REG_DTLS
+WEEKC.TDAM_DOCUMENTS_ISSUED
+WEEKC.TDAM_TAG_ORDER_TRANSACTIONS
+WEEKC.TDAM_GENETICS_ANIMAL_TRANS
+WEEKC.TDAM_IRREGULARITIES
+WEEKC.TDAM_COMP_TEST_DETAILS
+WEEKC.TDAM_COMP_ANIMALS
+WEEKC.TDAM_AES_GENETICS_TRANSFER
+WEEKC.TDAM_GENETICS_ANIMALS
+WEEKC.TDAM_AGENCY_NOTIFY_EVENTS
+WEEKC.TDAM_DOCUMENTS_RECEIVED
+WEEKC.TDAM_DOCUMENTS_RECEIVED_DETAIL
+WEEKC.TDAM_GEN_REVIEW_ANIMALS
+WEEKC.TDAM_CENSUS_DETAILS_TRANS
+WEEKC.TDAM_CMMS_TRANSFER_IN
+WEEKC.TDAM_SPECIFIC_REPL_DETAILS
+WEEKC.TDAM_TAG_ORDERS
+WEEKC.TDAM_AGENCY_NOTIFICATION
+WEEKC.TDAM_SUCKLER_NIGHTLY
+WEEKC.TDAM_OVINE_TAG_DETAILS
+
+let, the path of this file be </user/home/table_name.txt>
+
+##STEP 2. CREATE SHELL SCRIPT TO RUN SQOOP IMPORT IN LOOP WHICH READ EVERY FILE NAME ONE BY ONE AND IMPORT IT INTO HIVE##
+
+#!/bin/bash
+test=`cat temp`
+while read line;
+do
+	DBName=`echo $line | cut -d '.' -f1`
+	tableName=`echo $line | cut -d '.' -f2`
+				
+	echo "sqoop import 
+	--connect \"jdbc:oracle:thin:DA_DATA/"$test"@ (DESCRIPTION = (ADDRESS = (PROTOCOL=tcp)(HOST=sdbahpocm01-db.agriculture.gov.ie)(PORT=1532)) (CONNECT_DATA = (SERVICE_NAME="$DBName".agriculture.gov.ie) ) (HS=OK))\" \
+	--table "$tableName" 
+	--hive-import 
+	--hive-overwrite 
+	--create-hive-table 
+	--hive-database dev_da_demo -m 1"
+
+done <table_name.txt
+
+-----------------------------------------------------------------------------------------
+
+
+
+---INCREMENTAL QUERY---
+
+##1.HIVE IMPORT##
+sqoop import \
+	--connect "jdbc:oracle:thin:DA_DATA/$test@ \
+	--(DESCRIPTION = (ADDRESS = (PROTOCOL=tcp)(HOST=sdbahpocm01-db.agriculture.gov.ie)(PORT=1532)) \
+	--(CONNECT_DATA = (SERVICE_NAME=$DBNAME.agriculture.gov.ie) ) (HS=OK))" \
+	--table $tableName \
+	--query "select * from $tablename where last updated date > '28/01/2022' and \$CONDITIONS"
+	--hive-import \
+	--hive-database dev_da_demo -m 1
+	--hive-table $tableName
+	
+##2.HDFS IMPORT##	
+sqoop import \
+	--connect "jdbc:oracle:thin:DA_DATA/$test@ \
+	--(DESCRIPTION = (ADDRESS = (PROTOCOL=tcp)(HOST=sdbahpocm01-db.agriculture.gov.ie)(PORT=1532)) \
+	--(CONNECT_DATA = (SERVICE_NAME=$DBNAME.agriculture.gov.ie) ) (HS=OK))" \
+	--table $tableName \
+	--incremental lastmodified \
+	--merge-key <primary key>
+	--check-column last updated date \
+	--last value '28/01/2022'
+	
+
+##3.INCREMENTAL HIVE IMPORT IN LOOP##
+
+#!/bin/bash
+test=`cat temp`
+while read line;
+do
+	DBName=`echo $line | cut -d '.' -f1`
+	tableName=`echo $line | cut -d '.' -f2`
+	columnName=`echo $line | cut -d '.' -f3`
+	dateValue=`echo $line | cut -d '.' -f4`
+				
+	echo "sqoop import 
+	--connect \"jdbc:oracle:thin:DA_DATA/"$test"@ (DESCRIPTION = (ADDRESS = (PROTOCOL=tcp)(HOST=sdbahpocm01-db.agriculture.gov.ie)(PORT=1532)) (CONNECT_DATA = (SERVICE_NAME="$DBName".agriculture.gov.ie) ) (HS=OK))\" 
+	--table "$tableName" 
+	--query \"select * from "$tableName" where "$columnName" > "$dateValue" and \$CONDITIONS\"
+	--hive-import 
+	--hive-database dev_da_demo -m 1
+	--hive-table "$tableName""
+
+done < table_name.txt
+
+-----------------------------------------------------------------------------------------
+
+
+
+#####SQOOP IMPORT USING MERGE#####
+
+#!/bin/bash
+test=`cat ldw_extract_weekc4.txt`
+while read line;
+do
+
+tableName=`echo $line | cut -d ',' -f1`
+pkName=`echo $line | cut -d ',' -f2`
+columnName=`echo $line | cut -d ',' -f3`
+
+sqoop import --connect "jdbc:oracle:thin:LDW_EXTRACT/$test@(DESCRIPTION = (ADDRESS = (PROTOCOL=tcp)(HOST=sdbahpocm01-db.agriculture.gov.ie)(PORT=1532)) (CONNECT_DATA = (SERVICE_NAME=WEEKC.agriculture.gov.ie)(INSTANCE_NAME=WEEKC4) ) (HS=OK))"
+--table $tableName \
+--incremental lastmodified \
+--merge-key $pkName
+--check-column $columnName \
+--last value '28-Jan-22'
+--target-dir "/tmp/dev_da_perftest_weekc4/$tableName" 
+-m5
+--verbos
+
+done < table_name_with_dates1.txt
+
+-----------------------------------------------------------------------------------------
+
+------USING positional arguments------
+
+#!/bin/bash
+
+#./executable_file CONNECTION_FILE_PATH HIVEDBNAME
+
+CONNECTION_FILE = $1
+HIVEDBNAME=$2
+
+USERNAME=$1
+TEST=`cat $2`
+TABLENAMEFILE=$4
+DATEVALUE=$5
+
+
+while read line;
+do
+
+TABLENAME=`echo $line | cut -d ',' -f1`
+PKNAME=`echo $line | cut -d ',' -f2`
+COLUMNNAME=`echo $line | cut -d ',' -f3`
+
+
+
+sqoop import --connect "jdbc:oracle:thin:$USERNAME/$TEST@(DESCRIPTION = (ADDRESS = (PROTOCOL=tcp)(HOST=sdbahpocm01-db.agriculture.gov.ie)(PORT=1532)) (CONNECT_DATA = (SERVICE_NAME=WEEKC.agriculture.gov.ie)(INSTANCE_NAME=WEEKC4) ) (HS=OK))"
+--table $TABLENAME \
+--incremental lastmodified \
+--merge-key $PKNAME
+--check-column $COLUMNNAME \
+--last value $DATEVALUE
+--target-dir "/tmp/$HIVEDBNAME/$TABLENAME" 
+-m5
+--verbose
+
+done < $TABLENAMEFILE
+-----------------------------------------------------------------------------------------
+
+
+~~~USING positional arguments
+
+#!/bin/bash
+
+#./executable_file CONNECTION_FILE_PATH HIVEDBNAME
+
+CONNECTION_FILE = $1
+HIVEDBNAME=$2
+
+USERNAME=$1
+TEST=`cat $2`
+TABLENAMEFILE=$4
+DATEVALUE=$5
+
+
+while read line;
+do
+
+TABLENAME=`echo $line | cut -d ',' -f1`
+PKNAME=`echo $line | cut -d ',' -f2`
+COLUMNNAME=`echo $line | cut -d ',' -f3`
+
+
+
+sqoop import --connect "jdbc:oracle:thin:$USERNAME/$TEST@(DESCRIPTION = (ADDRESS = (PROTOCOL=tcp)(HOST=sdbahpocm01-db.agriculture.gov.ie)(PORT=1532)) (CONNECT_DATA = (SERVICE_NAME=WEEKC.agriculture.gov.ie)(INSTANCE_NAME=WEEKC4) ) (HS=OK))"
+--table $TABLENAME \
+--incremental lastmodified \
+--merge-key $PKNAME
+--check-column $COLUMNNAME \
+--last value $DATEVALUE
+--target-dir "/tmp/$HIVEDBNAME/$TABLENAME" 
+-m5
+--verbose
+
+done < $TABLENAMEFILE
+
+-----------------------------------------------------------------------------------------
+
+-----USING QUERY TO HIVE IMPORT------
+
+#!/bin/bash
+test=`cat ldw_extract_weekc4.txt`
+while read line;
+do
+
+
+
+tableName=`echo $line | cut -d ',' -f1`
+pkName=`echo $line | cut -d ',' -f2`
+columnName=`echo $line | cut -d ',' -f3`
+
+
+
+sqoop import --connect "jdbc:oracle:thin:LDW_EXTRACT/$test@(DESCRIPTION = (ADDRESS = (PROTOCOL=tcp)(HOST=sdbahpocm01-db.agriculture.gov.ie)(PORT=1532)) (CONNECT_DATA = (SERVICE_NAME=WEEKC.agriculture.gov.ie)(INSTANCE_NAME=WEEKC4) ) (HS=OK))" 
+--query "select * from AMS_DATA.$tableName where $columnName > '21-Jan-2022' and \$CONDITIONS" 
+--split-by $pkName 
+--target-dir "/tmp/dev_da_perftest_weekc4/$tableName" 
+--hive-import 
+--hive-database dev_da_perftest_weekc4 
+--hive-overwrite 
+--hs2-url "jdbc:hive2://cdputil2.agriculture.gov.ie:10000/default;principal=hive/cdputil2.agriculture.gov.ie@AGRICULTURE.GOC.IE;ssl=true;sslTrustStore=/var/lib/cloudera-scm-agent/agent-cert/cm-auto-global_truststore.jks" --hive-table $tableName 
+-m5 
+--delete-target-dir 
+--verbose
+
+
+
+done < table_name_with_dates1.txt
+
+-----------------------------------------------------------------------------------------
+----USING OF PROPERTY FILE-----
+
+~~~~PROPERTY FILE~~~~~
+HOST = sdbahpocm01-db.agriculture.gov.ie
+PORT = 1532
+SERVICENAME = WEEKC
+OPTIONAL_CONNECTION_DETAILS = (INSTANCE_NAME=WEEKC4)
+TABLENAMEFILE = <Table_name.txt>
+USERNAME = LDWEXTRACT
+PASSWORD_FILE_PATH = <password file path>
+
+
+###reading from property file
+##Read from property file
+
+#!/bin/bash
+file=./MyDB.properties
+
+if [ -f "$file" ]
+then
+	echo "$file found"
+	
+	while IFS='=' read -r key value
+	do
+		key=$(echo $key)
+		eval ${key}=\${value}
+	done<"$file"
+
+	USER_NAME=${USERNAME}
+	PASS_WORD=${PASSWORD}
+	TableName=${TABLENAMEFILE}
+	echo "$USER_NAME"
+	echo "$PASS_WORD"
+	echo "$TableName"
+else
+	echo "$file not found"
+fi
+
+
+-----------------------------------------------------------------------------------------
+
+##using echo to test 
+
+test=`cat temp`
+while read line;
+do
+	DBName=`echo $line | cut -d '.' -f1`
+	tableName=`echo $line | cut -d '.' -f2`
+				
+	echo "sqoop import 
+	--connect \"jdbc:oracle:thin:DA_DATA/"$test"@ (DESCRIPTION = (ADDRESS = (PROTOCOL=tcp)(HOST=sdbahpocm01-db.agriculture.gov.ie)(PORT=1532)) (CONNECT_DATA = (SERVICE_NAME="$DBName".agriculture.gov.ie) ) (HS=OK))\" \
+	--table "$tableName" 
+	--hive-import 
+	--hive-overwrite 
+	--create-hive-table 
+	--hive-database dev_da_demo -m 1"
+
+done <table_name.txt
+-------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------
+
+------INCREMNTAL IMPORT SCRIPT------
+
+##with echo to test
+##./<executable filename> <property file path> <Hive Database Name> <USER> <DateValue>
+
+#!/bin/bash
+PROPERTY_FILE=./$1
+HIVEDBNAME=$2
+USER=$3
+DATEVALUE=$4
+
+if [ -f "$PROPERTY_FILE" ]
+then
+	echo "$PROPERTY_FILE found"
+	
+	while IFS='=' read -r key value
+	do
+		key=$(echo $key)
+		eval ${key}=\${value}
+	done<"$PROPERTY_FILE"
+
+	USERNAME=${USERNAME}
+	PASSWORD=`cat ${PASSWORDFILEPATH}`
+	TABLENAME_FILE=${TABLENAMEFILE}
+	SERVICE_NAME=${SERVICENAME}
+	PORT=${PORT}
+	HOST=${HOST}
+	OPTIONAL_CONNECTION_DETAILS=${OPTIONAL_CONNECTION_DETAILS}
+	
+else
+	echo "$PROPERTY_FILE not found"
+fi
+
+
+if [ -z "$OPTIONAL_CONNECTION_DETAILS" ];
+then
+	CONNECTION_STRING=\""jdbc:oracle:thin:$USERNAME/$PASSWORD@(DESCRIPTION = (ADDRESS = (PROTOCOL=tcp)(HOST=$HOST)(PORT=$PORT)) (CONNECT_DATA = (SERVICE_NAME=$SERVICE_NAME.agriculture.gov.ie))(HS=OK))"\"
+else	
+	CONNECTION_STRING=\""jdbc:oracle:thin:$USERNAME/$PASSWORD@(DESCRIPTION = (ADDRESS = (PROTOCOL=tcp)(HOST=$HOST)(PORT=$PORT)) (CONNECT_DATA = (SERVICE_NAME=$SERVICE_NAME.agriculture.gov.ie)$OPTIONAL_CONNECTION_DETAILS)(HS=OK))"\"
+fi
+
+#echo "$CONNECTION_STRING"
+
+
+while read line;
+do
+TABLENAME=`echo $line | cut -d '.' -f1`
+PKNAME=`echo $line | cut -d '.' -f2`
+COLUMNNAME=`echo $line | cut -d '.' -f3`
+
+echo "sqoop import --connect $CONNECTION_STRING
+--table $USER.$TABLENAME \
+--incremental lastmodified \
+--merge-key $PKNAME
+--check-column $COLUMNNAME \
+--last value $DATEVALUE
+--target-dir \"/tmp/$HIVEDBNAME/$TABLENAME\" 
+-m5
+--verbose"
+
+done < $TABLENAME_FILE
+
+
+-------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------
+
+
+------FULL LOAD IMPORT SCRIPT------
+
+##with echo to test
+##./<executable filename> <property file path> <Hive Database Name> <USER>
+
+
+#!/bin/bash
+PROPERTY_FILE=./$1
+HIVEDBNAME=$2
+USER=$3
+
+
+if [ -f "$PROPERTY_FILE" ]
+then
+	echo "$PROPERTY_FILE found"
+	
+	while IFS='=' read -r key value
+	do
+		key=$(echo $key)
+		eval ${key}=\${value}
+	done<"$PROPERTY_FILE"
+
+	USERNAME=${USERNAME}
+	PASSWORD=`cat ${PASSWORDFILEPATH}`
+	TABLENAME_FILE=${TABLENAMEFILE}
+	SERVICE_NAME=${SERVICENAME}
+	PORT=${PORT}
+	HOST=${HOST}
+	OPTIONAL_CONNECTION_DETAILS=${OPTIONAL_CONNECTION_DETAILS}
+	
+else
+	echo "$PROPERTY_FILE not found"
+fi
+
+
+if [ -z "$OPTIONAL_CONNECTION_DETAILS" ];
+then
+	CONNECTION_STRING=\""jdbc:oracle:thin:$USERNAME/$PASSWORD@(DESCRIPTION = (ADDRESS = (PROTOCOL=tcp)(HOST=$HOST)(PORT=$PORT)) (CONNECT_DATA = (SERVICE_NAME=$SERVICE_NAME.agriculture.gov.ie))(HS=OK))"\"
+else	
+	CONNECTION_STRING=\""jdbc:oracle:thin:$USERNAME/$PASSWORD@(DESCRIPTION = (ADDRESS = (PROTOCOL=tcp)(HOST=$HOST)(PORT=$PORT)) (CONNECT_DATA = (SERVICE_NAME=$SERVICE_NAME.agriculture.gov.ie)$OPTIONAL_CONNECTION_DETAILS)(HS=OK))"\"
+fi
+
+#echo "$CONNECTION_STRING"
+
+
+while read line;
+do
+TABLENAME=`echo $line | cut -d '.' -f1`
+
+echo "sqoop import --connect $CONNECTION_STRING
+--table $USER.$TABLENAME \
+--target-dir \"/tmp/$HIVEDBNAME/$TABLENAME\" 
+--hive-import 
+--hive-database $HIVEDBNAME 
+--hive-overwrite 
+--hs2-url \"jdbc:hive2://cdputil2.agriculture.gov.ie:10000/default;principal=hive/cdputil2.agriculture.gov.ie@AGRICULTURE.GOC.IE;ssl=true;sslTrustStore=/var/lib/cloudera-scm-agent/agent-cert/cm-auto-global_truststore.jks\" 
+--hive-table $TABLENAME 
+-m5
+--delete-target-dir 
+--verbose"
+
+done < $TABLENAME_FILE
+
+-------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------
+
+-------Property File-------
+
+HOST=sdbahpocm01-db.agriculture.gov.ie
+PORT=1532
+SERVICENAME=WEEKC
+OPTIONAL_CONNECTION_DETAILS=(INSTANCE_NAME=WEEKC4)
+TABLENAMEFILE=table_name.txt
+USERNAME=LDWEXTRACT
+PASSWORDFILEPATH=temp
+
+
+-------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------
+
+----UNIX COMMAND----
+
+chmod +x <file name> //executable right
+vi <file name> //create and edit file
+i // to insert text
+:wq //save and exit file
+tail -f <file name> //latest status of the file what is being written
+for filename in `hadoop fs -ls -C /tmp/dev_da_perftest_weekc4_test_0302_1952/TDAM_OVINE_TAG_DETAILS/ | grep part`; do hdfs dfs -cat $filename | wc -l; done > counts.txt  //loop to run through all files
+> //redirect overwrite into file
+>> //redirect append into file
+
+-----------------------------------------------------------------------------------------
+

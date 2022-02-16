@@ -1,0 +1,67 @@
+#!/bin/bash
+
+######FULL LOAD IMPORT SCRIPT######
+
+##./<executable filename> <property file path> <Hive Database Name> <USER_access to table> <DebugMode>
+
+PROPERTY_FILE=$1
+HIVEDBNAME=$2
+USER=$3
+DEBUG_MODE=$4
+
+if [ "$#" -ne 4 ]; then
+	echo "Incorrect argument provided. Provide argument in position to->>  ./<executable filename> <property file path> <Hive Database Name> <USER_access to table> <DebugMode>"
+	exit 0
+fi
+
+
+if hdfs dfs -test -f "$PROPERTY_FILE";
+	then
+	echo "$PROPERTY_FILE found"
+
+
+	while IFS='=' read -r key value
+	do
+		key=$(echo $key)
+		eval ${key}=\${value}
+	done< <(hdfs dfs -cat $PROPERTY_FILE)
+
+	USERNAME=${USERNAME}
+	PASSWORD=`hdfs dfs -cat ${PASSWORDFILEPATH}`
+	TABLENAME_FILE=${TABLENAMEFILE}
+	SERVICE_NAME=${SERVICENAME}
+	PORT=${PORT}
+	HOST=${HOST}
+	OPTIONAL_CONNECTION_DETAILS=${OPTIONAL_CONNECTION_DETAILS}
+	HS2_URL=${HS2_URL}
+
+else
+	echo "$PROPERTY_FILE not found"
+	exit 0
+fi
+
+
+if [ -z "$OPTIONAL_CONNECTION_DETAILS" ];
+	then
+	CONNECTION_STRING="jdbc:oracle:thin:$USERNAME/$PASSWORD@(DESCRIPTION = (ADDRESS = (PROTOCOL=tcp)(HOST=$HOST)(PORT=$PORT)) (CONNECT_DATA = (SERVICE_NAME=$SERVICE_NAME.agriculture.gov.ie))(HS=OK))"
+else
+	CONNECTION_STRING="jdbc:oracle:thin:$USERNAME/$PASSWORD@(DESCRIPTION = (ADDRESS = (PROTOCOL=tcp)(HOST=$HOST)(PORT=$PORT)) (CONNECT_DATA = (SERVICE_NAME=$SERVICE_NAME.agriculture.gov.ie)$OPTIONAL_CONNECTION_DETAILS)(HS=OK))"
+fi
+
+#echo "$CONNECTION_STRING"
+
+
+while read line;
+do
+	TABLENAME=`echo $line | cut -d ',' -f1`
+
+	SQOOP_COMMAND="sqoop import --connect \"$CONNECTION_STRING\" --table $USER.$TABLENAME --target-dir '/tmp/$HIVEDBNAME/$TABLENAME' --hive-import --hive-database $HIVEDBNAME --hive-overwrite --hs2-url \"$HS2_URL\" --hive-table $TABLENAME -m5 --delete-target-dir --verbose"
+
+	if [ "$DEBUG_MODE" == true ]
+	then
+		echo "$SQOOP_COMMAND"
+	else
+		bash -c "$SQOOP_COMMAND"
+	fi
+
+done < <(hdfs dfs -cat $TABLENAME_FILE)
